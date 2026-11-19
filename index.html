@@ -1,0 +1,959 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FrameCut — AI Video Clipping Platform</title>
+    <meta
+      name="description"
+      content="Turn long-form video into vertical, square, or widescreen highlight clips with real Whisper transcription, AI highlight detection, and FFmpeg rendering."
+    />
+    <meta property="og:title" content="FrameCut — AI Video Clipping Platform" />
+    <meta
+      property="og:description"
+      content="Turn long-form video into vertical, square, or widescreen highlight clips with real Whisper transcription, AI highlight detection, and FFmpeg rendering."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <div class="ambient-backdrop" aria-hidden="true">
+      <div class="ambient-orb ambient-orb-primary"></div>
+      <div class="ambient-orb ambient-orb-secondary"></div>
+      <div class="ambient-grid"></div>
+    </div>
+
+    <!-- Top Navigation Bar (Strict 3-Zone Contract) -->
+    <header class="site-header" id="top">
+      <div class="container header-inner">
+        <a href="#top" class="brand-wordmark" aria-label="FrameCut Home">
+          <svg
+            class="brand-mark"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+          >
+            <rect
+              x="2.5"
+              y="2.5"
+              width="19"
+              height="19"
+              rx="5.5"
+              stroke="url(#fcGrad)"
+              stroke-width="1.8"
+            />
+            <path
+              d="M9.5 8.2L16.2 12L9.5 15.8V8.2Z"
+              fill="url(#fcGrad)"
+            />
+            <defs>
+              <linearGradient
+                id="fcGrad"
+                x1="2.5"
+                y1="2.5"
+                x2="21.5"
+                y2="21.5"
+                gradientUnits="userSpaceOnUse"
+              >
+                <stop stop-color="#B090FF" />
+                <stop offset="1" stop-color="#8757FF" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <span>FrameCut</span>
+        </a>
+
+        <nav class="header-nav" aria-label="Primary navigation">
+          <a href="#studio" class="nav-link">Studio</a>
+          <a href="#clips-section" class="nav-link">Clips</a>
+          <a href="#workflow" class="nav-link">Workflow</a>
+          <a href="#setup" class="nav-link">Setup</a>
+        </nav>
+
+        <div class="header-actions">
+          <button type="button" class="btn btn-primary btn-sm" id="nav-new-video-btn">
+            New Video
+          </button>
+          <button
+            type="button"
+            class="mobile-menu-btn"
+            id="mobile-menu-btn"
+            aria-label="Toggle navigation menu"
+            aria-expanded="false"
+            aria-controls="mobile-nav-drawer"
+          >
+            <i data-lucide="menu" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="mobile-nav-drawer" id="mobile-nav-drawer" hidden>
+        <div class="container mobile-nav-inner">
+          <a href="#studio" class="mobile-nav-link">Studio</a>
+          <a href="#clips-section" class="mobile-nav-link">Clips</a>
+          <a href="#workflow" class="mobile-nav-link">Workflow</a>
+          <a href="#setup" class="mobile-nav-link">Setup</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <!-- Hero & Studio Workspace -->
+      <section class="studio-section" id="studio">
+        <div class="container">
+          <div class="hero-header">
+            <h1 class="hero-title">
+              Turn long-form video into ready-to-publish short clips.
+            </h1>
+            <p class="hero-subtitle">
+              Upload a video file or paste an authorized media URL. FrameCut transcribes speech with
+              Whisper, selects high-retention moments with AI, and renders cropped, captioned MP4
+              clips with FFmpeg.
+            </p>
+          </div>
+
+          <!-- Real-Time Backend & Dependency Status Strip -->
+          <div
+            class="system-banner glass-surface"
+            id="system-banner"
+            role="status"
+            aria-live="polite"
+          >
+            <div class="system-banner-top">
+              <div class="system-banner-summary">
+                <span class="state-icon" id="system-state-icon" aria-hidden="true">
+                  <i data-lucide="loader-2" class="spin"></i>
+                </span>
+                <div>
+                  <div class="system-banner-title" id="system-banner-title">
+                    Checking processing backend...
+                  </div>
+                  <div class="system-banner-meta" id="system-banner-meta">
+                    Verifying FastAPI server, FFmpeg, Whisper, and AI provider configuration
+                  </div>
+                </div>
+              </div>
+              <div class="system-banner-controls">
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-sm"
+                  id="toggle-backend-config-btn"
+                  aria-expanded="false"
+                  aria-controls="backend-config-panel"
+                >
+                  <i data-lucide="sliders-horizontal" aria-hidden="true"></i>
+                  <span>Backend URL</span>
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" id="recheck-health-btn">
+                  <i data-lucide="refresh-cw" aria-hidden="true"></i>
+                  <span>Re-check</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Missing Requirements Alert List (Shown only when backend unreachable or deps missing) -->
+            <div class="system-issues" id="system-issues" hidden></div>
+
+            <!-- Backend URL Override Panel (Helpful if frontend and FastAPI run on separate ports) -->
+            <div class="backend-config-panel" id="backend-config-panel" hidden>
+              <form id="backend-url-form" class="backend-url-form">
+                <label for="backend-url-input" class="field-label">
+                  FastAPI Server URL (leave blank for same-origin)
+                </label>
+                <div class="backend-url-row">
+                  <input
+                    type="url"
+                    id="backend-url-input"
+                    class="text-input mono-input"
+                    placeholder="http://localhost:8000"
+                    autocomplete="off"
+                  />
+                  <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+                  <button type="button" class="btn btn-ghost btn-sm" id="reset-backend-url-btn">
+                    Same Origin
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Primary Ingestion Workspace -->
+          <div class="workspace-grid">
+            <!-- Left Column: Source Input + Processing Form -->
+            <form class="studio-panel glass-surface" id="clip-job-form" novalidate>
+              <div class="panel-header">
+                <div>
+                  <h2 class="panel-title">Create Clipping Job</h2>
+                  <p class="panel-desc">
+                    Isolated temporary workspace with automatic cleanup. No account required.
+                  </p>
+                </div>
+                <div class="segmented-control" role="tablist" aria-label="Video source type">
+                  <button
+                    type="button"
+                    role="tab"
+                    class="segmented-btn is-active"
+                    id="tab-upload"
+                    data-source-mode="upload"
+                    aria-selected="true"
+                  >
+                    Upload File
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    class="segmented-btn"
+                    id="tab-url"
+                    data-source-mode="url"
+                    aria-selected="false"
+                  >
+                    Authorized URL
+                  </button>
+                </div>
+              </div>
+
+              <!-- Source Mode 1: File Upload -->
+              <div class="source-pane" id="pane-upload">
+                <div
+                  class="dropzone"
+                  id="file-dropzone"
+                  tabindex="0"
+                  role="button"
+                  aria-label="Upload video file. Drop a video here or press Enter to browse."
+                >
+                  <input
+                    type="file"
+                    id="video-file-input"
+                    class="sr-only"
+                    accept="video/mp4,video/quicktime,video/webm,video/x-matroska,video/x-msvideo,.mp4,.mov,.webm,.mkv,.m4v,.avi"
+                  />
+                  <div class="dropzone-empty" id="dropzone-empty">
+                    <div class="dropzone-icon">
+                      <i data-lucide="upload-cloud" aria-hidden="true"></i>
+                    </div>
+                    <p class="dropzone-heading">Drop a video file here, or click to browse</p>
+                    <p class="dropzone-hint">
+                      MP4, MOV, WebM, MKV, or AVI · Max size configured by server
+                      (<span id="max-upload-label" class="tabular">500 MB</span>)
+                    </p>
+                  </div>
+
+                  <div class="dropzone-selected" id="dropzone-selected" hidden>
+                    <div class="file-preview-meta">
+                      <div class="file-icon-box">
+                        <i data-lucide="film" aria-hidden="true"></i>
+                      </div>
+                      <div class="file-details">
+                        <div class="file-name" id="selected-file-name">video.mp4</div>
+                        <div class="file-meta-line" id="selected-file-meta">0 MB</div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      class="btn btn-ghost btn-sm"
+                      id="clear-file-btn"
+                      aria-label="Remove selected file"
+                    >
+                      <i data-lucide="x" aria-hidden="true"></i>
+                      <span>Remove</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Source Mode 2: Authorized URL -->
+              <div class="source-pane" id="pane-url" hidden>
+                <div class="field-group">
+                  <label for="video-url-input" class="field-label">
+                    Direct Video URL or Supported Media Link
+                  </label>
+                  <input
+                    type="url"
+                    id="video-url-input"
+                    class="text-input"
+                    placeholder="https://example.com/media/keynote.mp4"
+                    autocomplete="off"
+                  />
+                  <p class="field-help">
+                    Supports direct MP4/MOV/WebM URLs natively, plus platform URLs when
+                    <code class="inline-code">yt-dlp</code> is installed on the backend.
+                  </p>
+                </div>
+
+                <label class="checkbox-row" for="url-authorized-checkbox">
+                  <input type="checkbox" id="url-authorized-checkbox" />
+                  <span>
+                    I confirm that I own this video or have explicit authorization to download and
+                    process it.
+                  </span>
+                </label>
+              </div>
+
+              <div class="section-divider"></div>
+
+              <!-- Output Settings Grid -->
+              <div class="settings-grid">
+                <div class="field-group">
+                  <span class="field-label">Aspect Ratio</span>
+                  <div class="segmented-control segmented-full" id="aspect-ratio-group">
+                    <button
+                      type="button"
+                      class="segmented-btn is-active"
+                      data-aspect="9:16"
+                      aria-pressed="true"
+                    >
+                      9:16 Vertical
+                    </button>
+                    <button
+                      type="button"
+                      class="segmented-btn"
+                      data-aspect="1:1"
+                      aria-pressed="false"
+                    >
+                      1:1 Square
+                    </button>
+                    <button
+                      type="button"
+                      class="segmented-btn"
+                      data-aspect="16:9"
+                      aria-pressed="false"
+                    >
+                      16:9 Wide
+                    </button>
+                  </div>
+                </div>
+
+                <div class="field-group">
+                  <span class="field-label">Burned Captions</span>
+                  <div class="segmented-control segmented-full" id="caption-style-group">
+                    <button
+                      type="button"
+                      class="segmented-btn is-active"
+                      data-caption="dynamic"
+                      aria-pressed="true"
+                    >
+                      Dynamic
+                    </button>
+                    <button
+                      type="button"
+                      class="segmented-btn"
+                      data-caption="minimal"
+                      aria-pressed="false"
+                    >
+                      Minimal
+                    </button>
+                    <button
+                      type="button"
+                      class="segmented-btn"
+                      data-caption="classic"
+                      aria-pressed="false"
+                    >
+                      Classic
+                    </button>
+                    <button
+                      type="button"
+                      class="segmented-btn"
+                      data-caption="off"
+                      aria-pressed="false"
+                    >
+                      Off
+                    </button>
+                  </div>
+                </div>
+
+                <div class="field-group">
+                  <label for="clip-count-select" class="field-label">Target Clips</label>
+                  <select id="clip-count-select" class="select-input">
+                    <option value="2">2 highlights</option>
+                    <option value="3">3 highlights</option>
+                    <option value="4" selected>4 highlights</option>
+                    <option value="6">6 highlights</option>
+                    <option value="8">8 highlights</option>
+                  </select>
+                </div>
+
+                <div class="field-group">
+                  <label for="language-select" class="field-label">Speech Language</label>
+                  <select id="language-select" class="select-input">
+                    <option value="auto" selected>Auto-detect</option>
+                    <option value="en">English</option>
+                    <option value="es">Spanish</option>
+                    <option value="fr">French</option>
+                    <option value="de">German</option>
+                    <option value="pt">Portuguese</option>
+                    <option value="hi">Hindi</option>
+                    <option value="ja">Japanese</option>
+                  </select>
+                </div>
+
+                <div class="field-group">
+                  <label for="min-duration-input" class="field-label">Min Duration (sec)</label>
+                  <input
+                    type="number"
+                    id="min-duration-input"
+                    class="text-input mono-input"
+                    value="20"
+                    min="5"
+                    max="120"
+                  />
+                </div>
+
+                <div class="field-group">
+                  <label for="max-duration-input" class="field-label">Max Duration (sec)</label>
+                  <input
+                    type="number"
+                    id="max-duration-input"
+                    class="text-input mono-input"
+                    value="60"
+                    min="10"
+                    max="180"
+                  />
+                </div>
+              </div>
+
+              <!-- Inline Form Validation Error -->
+              <div class="inline-alert inline-alert-error" id="form-error-box" role="alert" hidden>
+                <i data-lucide="alert-circle" aria-hidden="true"></i>
+                <div class="inline-alert-body" id="form-error-text"></div>
+              </div>
+
+              <!-- Live File Upload Transfer Bar -->
+              <div class="upload-transfer-box" id="upload-transfer-box" hidden>
+                <div class="transfer-row">
+                  <span id="upload-transfer-label">Uploading source video...</span>
+                  <span id="upload-transfer-pct" class="mono-text tabular">0%</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill" id="upload-transfer-fill" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div class="form-footer">
+                <p class="form-footnote">
+                  Real processing via <code class="inline-code">server.py</code> · No synthetic or
+                  placeholder clips
+                </p>
+                <button type="submit" class="btn btn-primary btn-lg" id="submit-job-btn">
+                  <i data-lucide="scissors" aria-hidden="true"></i>
+                  <span>Generate Clips</span>
+                </button>
+              </div>
+            </form>
+
+            <!-- Right Column: Live Job Processing Status & Session Queue -->
+            <aside class="status-column">
+              <!-- Active Job Tracker -->
+              <div class="job-tracker glass-surface" id="job-tracker">
+                <div class="panel-header-compact">
+                  <h2 class="panel-title">Processing Pipeline</h2>
+                  <span class="mono-text muted-text tabular" id="active-job-id">No active job</span>
+                </div>
+
+                <!-- Idle State -->
+                <div class="tracker-empty" id="tracker-empty">
+                  <div class="empty-icon">
+                    <i data-lucide="cpu" aria-hidden="true"></i>
+                  </div>
+                  <p class="empty-title">Waiting for media input</p>
+                  <p class="empty-desc">
+                    Submit a video file or authorized URL to monitor real FFmpeg probing, Whisper
+                    transcription, AI highlight selection, and clip rendering.
+                  </p>
+                </div>
+
+                <!-- Active / Completed / Failed State -->
+                <div class="tracker-body" id="tracker-body" hidden>
+                  <div class="job-source-summary" id="job-source-summary"></div>
+
+                  <div class="job-progress-block">
+                    <div class="transfer-row">
+                      <span class="job-stage-msg" id="job-stage-msg">Queued</span>
+                      <span class="mono-text tabular" id="job-progress-pct">0%</span>
+                    </div>
+                    <div class="progress-track">
+                      <div class="progress-fill" id="job-progress-fill" style="width: 0%"></div>
+                    </div>
+                  </div>
+
+                  <ol class="pipeline-steps" id="pipeline-steps"></ol>
+
+                  <!-- Real Job Error Box with Retry -->
+                  <div class="job-error-box" id="job-error-box" role="alert" hidden>
+                    <div class="job-error-header">
+                      <i data-lucide="alert-triangle" aria-hidden="true"></i>
+                      <span id="job-error-title">Processing failed</span>
+                    </div>
+                    <p class="job-error-message" id="job-error-message"></p>
+                    <p class="job-error-fix" id="job-error-fix" hidden></p>
+                    <div class="job-error-actions">
+                      <button type="button" class="btn btn-primary btn-sm" id="retry-job-btn">
+                        <i data-lucide="rotate-ccw" aria-hidden="true"></i>
+                        <span>Retry Job</span>
+                      </button>
+                      <button type="button" class="btn btn-ghost btn-sm" id="dismiss-job-btn">
+                        <i data-lucide="trash-2" aria-hidden="true"></i>
+                        <span>Delete Job</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Temporary Session Jobs History -->
+              <div class="session-jobs glass-surface" id="session-jobs-card">
+                <div class="panel-header-compact">
+                  <h3 class="panel-subtitle">Temporary Sessions</h3>
+                  <button
+                    type="button"
+                    class="btn btn-ghost btn-xs"
+                    id="refresh-jobs-btn"
+                    aria-label="Refresh temporary jobs"
+                  >
+                    <i data-lucide="refresh-cw" aria-hidden="true"></i>
+                    <span>Refresh</span>
+                  </button>
+                </div>
+                <div class="session-jobs-list" id="session-jobs-list">
+                  <p class="muted-small">No temporary jobs on the backend yet.</p>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <!-- Generated Clips Section -->
+      <section class="clips-section" id="clips-section">
+        <div class="container">
+          <div class="section-header-bar">
+            <div>
+              <h2 class="section-title">Generated Clips</h2>
+              <p class="section-meta" id="clips-summary-meta">
+                Rendered clips from the active job will appear here with real video previews and
+                trim controls.
+              </p>
+            </div>
+
+            <div class="clips-toolbar" id="clips-toolbar" hidden>
+              <div class="search-wrap">
+                <i data-lucide="search" class="search-icon" aria-hidden="true"></i>
+                <input
+                  type="search"
+                  id="clip-search-input"
+                  class="text-input search-input"
+                  placeholder="Filter clips or transcript..."
+                  aria-label="Filter clips"
+                />
+              </div>
+
+              <button type="button" class="btn btn-secondary btn-sm" id="toggle-transcript-btn">
+                <i data-lucide="file-text" aria-hidden="true"></i>
+                <span>Transcript</span>
+              </button>
+
+              <button type="button" class="btn btn-secondary btn-sm" id="open-custom-clip-btn">
+                <i data-lucide="plus" aria-hidden="true"></i>
+                <span>Custom Clip</span>
+              </button>
+
+              <button type="button" class="btn btn-primary btn-sm" id="download-all-btn">
+                <i data-lucide="archive" aria-hidden="true"></i>
+                <span>Download All</span>
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-ghost btn-sm btn-danger-ghost"
+                id="delete-active-job-btn"
+                title="Delete temporary job and all generated clips"
+              >
+                <i data-lucide="trash-2" aria-hidden="true"></i>
+                <span>Delete Job</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Collapsible Full Whisper Transcript Viewer -->
+          <div class="transcript-drawer glass-surface" id="transcript-drawer" hidden>
+            <div class="transcript-header">
+              <div>
+                <h3 class="panel-subtitle">Whisper Speech Transcript</h3>
+                <p class="muted-small" id="transcript-meta">
+                  Click any timestamped line to start a custom clip from that moment.
+                </p>
+              </div>
+              <button
+                type="button"
+                class="btn btn-ghost btn-sm"
+                id="close-transcript-btn"
+                aria-label="Close transcript"
+              >
+                <i data-lucide="x" aria-hidden="true"></i>
+                <span>Close</span>
+              </button>
+            </div>
+            <div class="transcript-segments" id="transcript-segments"></div>
+          </div>
+
+          <!-- Empty State when no clips exist yet -->
+          <div class="clips-empty-state glass-surface" id="clips-empty-state">
+            <div class="empty-icon large-empty-icon">
+              <i data-lucide="clapperboard" aria-hidden="true"></i>
+            </div>
+            <h3 class="empty-title">No rendered clips yet</h3>
+            <p class="empty-desc">
+              Upload a video or submit an authorized URL above. FrameCut never displays sample or
+              fabricated clips—every preview below is genuinely rendered by FFmpeg.
+            </p>
+          </div>
+
+          <!-- Populated Clips Grid -->
+          <div class="clips-grid" id="clips-grid" hidden></div>
+        </div>
+      </section>
+
+      <!-- Workflow Overview -->
+      <section class="workflow-section" id="workflow">
+        <div class="container">
+          <div class="section-header-bar">
+            <div>
+              <h2 class="section-title">How the Pipeline Works</h2>
+              <p class="section-meta">
+                Four deterministic stages executed in isolated temporary job directories.
+              </p>
+            </div>
+          </div>
+
+          <div class="workflow-grid">
+            <article class="workflow-item">
+              <div class="workflow-num mono-text">01</div>
+              <h3 class="workflow-title">Media Validation & Probe</h3>
+              <p class="workflow-desc">
+                Uploads stream in chunks with size enforcement and MIME checks. Authorized URLs pass
+                SSRF validation before <code class="inline-code">ffprobe</code> verifies codec,
+                resolution, frame rate, and duration.
+              </p>
+            </article>
+
+            <article class="workflow-item">
+              <div class="workflow-num mono-text">02</div>
+              <h3 class="workflow-title">Whisper Speech Transcription</h3>
+              <p class="workflow-desc">
+                FFmpeg extracts compact 16 kHz mono audio, then transcribes timestamped segments via
+                local <code class="inline-code">faster-whisper</code>,
+                <code class="inline-code">openai-whisper</code>, or the OpenAI Whisper API.
+              </p>
+            </article>
+
+            <article class="workflow-item">
+              <div class="workflow-num mono-text">03</div>
+              <h3 class="workflow-title">AI Highlight Selection</h3>
+              <p class="workflow-desc">
+                The full timestamped transcript is analyzed by OpenAI or Gemini to locate complete,
+                self-contained moments within your chosen duration bounds and clip count.
+              </p>
+            </article>
+
+            <article class="workflow-item">
+              <div class="workflow-num mono-text">04</div>
+              <h3 class="workflow-title">FFmpeg Reframing & Captions</h3>
+              <p class="workflow-desc">
+                Each highlight is cropped to 9:16, 1:1, or 16:9, burned with re-timed SRT subtitles,
+                encoded in fast-start H.264/AAC for instant playback, and ready for individual trim
+                or ZIP export.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- Backend Setup Section -->
+      <section class="setup-section" id="setup">
+        <div class="container">
+          <div class="setup-card glass-surface">
+            <div class="setup-grid">
+              <div>
+                <h2 class="section-title">Backend Setup & Environment</h2>
+                <p class="section-meta">
+                  Run <code class="inline-code">server.py</code> directly with FastAPI and Uvicorn.
+                  All processing happens through real local binaries and configured API keys.
+                </p>
+
+                <div class="env-list">
+                  <div class="env-item">
+                    <span class="mono-text env-key">OPENAI_API_KEY</span>
+                    <span class="env-desc">Enables OpenAI Whisper API &amp; GPT highlight selection</span>
+                  </div>
+                  <div class="env-item">
+                    <span class="mono-text env-key">GEMINI_API_KEY</span>
+                    <span class="env-desc">Enables Gemini highlight selection (pair with local Whisper)</span>
+                  </div>
+                  <div class="env-item">
+                    <span class="mono-text env-key">WHISPER_MODEL</span>
+                    <span class="env-desc">Optional local Whisper model size (default: base)</span>
+                  </div>
+                  <div class="env-item">
+                    <span class="mono-text env-key">MAX_UPLOAD_MB</span>
+                    <span class="env-desc">Maximum upload file size in megabytes (default: 500)</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="command-stack">
+                <div class="command-block">
+                  <div class="command-header">
+                    <span>1. Install Python dependencies &amp; FFmpeg</span>
+                    <button
+                      type="button"
+                      class="btn btn-ghost btn-xs copy-cmd-btn"
+                      data-copy="pip install fastapi uvicorn python-multipart faster-whisper yt-dlp"
+                    >
+                      <i data-lucide="copy" aria-hidden="true"></i>
+                      <span>Copy</span>
+                    </button>
+                  </div>
+                  <pre class="command-pre"><code>pip install fastapi uvicorn python-multipart faster-whisper yt-dlp</code></pre>
+                </div>
+
+                <div class="command-block">
+                  <div class="command-header">
+                    <span>2. Set an AI API key &amp; launch server.py</span>
+                    <button
+                      type="button"
+                      class="btn btn-ghost btn-xs copy-cmd-btn"
+                      data-copy="export OPENAI_API_KEY=your_key_here && python3 server.py"
+                    >
+                      <i data-lucide="copy" aria-hidden="true"></i>
+                      <span>Copy</span>
+                    </button>
+                  </div>
+                  <pre class="command-pre"><code>export OPENAI_API_KEY=your_key_here &amp;&amp; python3 server.py</code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <span class="footer-brand">FrameCut</span>
+        <span class="footer-note">
+          Temporary job directories auto-expire · Plain HTML, CSS, JavaScript &amp; FastAPI
+        </span>
+      </div>
+    </footer>
+
+    <!-- Clip Trim, Caption & Aspect Ratio Editor Modal -->
+    <div
+      class="modal-backdrop"
+      id="clip-editor-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="editor-modal-title"
+      hidden
+    >
+      <div class="modal-dialog glass-surface">
+        <div class="modal-header">
+          <div>
+            <h2 class="panel-title" id="editor-modal-title">Edit &amp; Trim Clip</h2>
+            <p class="muted-small" id="editor-modal-subtitle">
+              Adjust trim boundaries, aspect ratio, or captions and re-render via FFmpeg.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm"
+            id="close-editor-modal-btn"
+            aria-label="Close editor"
+          >
+            <i data-lucide="x" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <form id="clip-editor-form" class="modal-body">
+          <div class="editor-layout">
+            <!-- Left: Preview Video & Visual Timeline -->
+            <div class="editor-preview-col">
+              <div class="editor-video-shell" id="editor-video-shell">
+                <video id="editor-video" controls playsinline preload="metadata"></video>
+              </div>
+
+              <div class="timeline-widget">
+                <div class="timeline-labels mono-text tabular">
+                  <span>00:00</span>
+                  <span id="timeline-window-label">00:00 – 00:30 (30.0s)</span>
+                  <span id="timeline-source-total">00:00</span>
+                </div>
+                <div class="timeline-track" id="timeline-track">
+                  <div class="timeline-selection" id="timeline-selection"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Trim & Output Controls -->
+            <div class="editor-controls-col">
+              <div class="field-group">
+                <label for="editor-title-input" class="field-label">Clip Title</label>
+                <input
+                  type="text"
+                  id="editor-title-input"
+                  class="text-input"
+                  maxlength="120"
+                  required
+                />
+              </div>
+
+              <div class="trim-inputs-row">
+                <div class="field-group">
+                  <label for="editor-start-input" class="field-label">
+                    Start Time (<span id="editor-start-fmt" class="mono-text tabular">00:00.0</span>)
+                  </label>
+                  <div class="nudge-input-group">
+                    <button type="button" class="nudge-btn" data-nudge="start" data-delta="-1">
+                      -1s
+                    </button>
+                    <input
+                      type="number"
+                      id="editor-start-input"
+                      class="text-input mono-input"
+                      step="0.5"
+                      min="0"
+                      required
+                    />
+                    <button type="button" class="nudge-btn" data-nudge="start" data-delta="1">
+                      +1s
+                    </button>
+                  </div>
+                </div>
+
+                <div class="field-group">
+                  <label for="editor-end-input" class="field-label">
+                    End Time (<span id="editor-end-fmt" class="mono-text tabular">00:30.0</span>)
+                  </label>
+                  <div class="nudge-input-group">
+                    <button type="button" class="nudge-btn" data-nudge="end" data-delta="-1">
+                      -1s
+                    </button>
+                    <input
+                      type="number"
+                      id="editor-end-input"
+                      class="text-input mono-input"
+                      step="0.5"
+                      min="1"
+                      required
+                    />
+                    <button type="button" class="nudge-btn" data-nudge="end" data-delta="1">
+                      +1s
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="dual-sliders">
+                <label class="slider-row">
+                  <span class="muted-small">Start</span>
+                  <input type="range" id="editor-start-slider" min="0" max="100" step="0.5" />
+                </label>
+                <label class="slider-row">
+                  <span class="muted-small">End</span>
+                  <input type="range" id="editor-end-slider" min="0" max="100" step="0.5" />
+                </label>
+              </div>
+
+              <div class="editor-selects-row">
+                <div class="field-group">
+                  <label for="editor-aspect-select" class="field-label">Aspect Ratio</label>
+                  <select id="editor-aspect-select" class="select-input">
+                    <option value="9:16">9:16 Vertical (1080×1920)</option>
+                    <option value="1:1">1:1 Square (1080×1080)</option>
+                    <option value="16:9">16:9 Widescreen (1920×1080)</option>
+                  </select>
+                </div>
+
+                <div class="field-group">
+                  <label for="editor-caption-select" class="field-label">Captions</label>
+                  <select id="editor-caption-select" class="select-input">
+                    <option value="dynamic">Dynamic Burned Captions</option>
+                    <option value="minimal">Minimal Lower-Third</option>
+                    <option value="classic">Classic Subtitles</option>
+                    <option value="off">No Burned Captions</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field-group">
+                <div class="label-with-action">
+                  <label for="editor-srt-textarea" class="field-label">
+                    Caption Subtitles (SRT — optional override)
+                  </label>
+                  <button type="button" class="btn btn-ghost btn-xs" id="reset-srt-btn">
+                    Auto-generate from transcript
+                  </button>
+                </div>
+                <textarea
+                  id="editor-srt-textarea"
+                  class="text-area mono-input"
+                  rows="5"
+                  placeholder="Leave unchanged to keep or auto-generate captions from the Whisper transcript..."
+                ></textarea>
+              </div>
+
+              <div class="inline-alert inline-alert-error" id="editor-error-box" role="alert" hidden>
+                <i data-lucide="alert-circle" aria-hidden="true"></i>
+                <div class="inline-alert-body" id="editor-error-text"></div>
+              </div>
+
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" id="cancel-editor-btn">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="save-editor-btn">
+                  <i data-lucide="sparkles" aria-hidden="true"></i>
+                  <span id="save-editor-label">Re-render Clip</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Confirmation Dialog (Replaces native window.confirm) -->
+    <div
+      class="modal-backdrop"
+      id="confirm-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirm-modal-title"
+      hidden
+    >
+      <div class="modal-dialog modal-dialog-sm glass-surface">
+        <div class="modal-header">
+          <h2 class="panel-title" id="confirm-modal-title">Confirm Deletion</h2>
+        </div>
+        <div class="modal-body">
+          <p class="confirm-message" id="confirm-modal-message"></p>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-ghost" id="confirm-cancel-btn">Cancel</button>
+            <button type="button" class="btn btn-danger" id="confirm-proceed-btn">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+  </body>
+</html>
+
