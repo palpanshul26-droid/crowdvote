@@ -6,15 +6,16 @@
     <title>FrameCut — AI Video Clipping Platform</title>
     <meta
       name="description"
-      content="Turn long-form video into vertical, square, or widescreen highlight clips with real Whisper transcription, AI highlight detection, and FFmpeg rendering."
+      content="Turn long-form video into vertical, square, or widescreen highlight clips powered exclusively by Google Gemini and FFmpeg."
     />
     <meta property="og:title" content="FrameCut — AI Video Clipping Platform" />
     <meta
       property="og:description"
-      content="Turn long-form video into vertical, square, or widescreen highlight clips with real Whisper transcription, AI highlight detection, and FFmpeg rendering."
+      content="Turn long-form video into vertical, square, or widescreen highlight clips powered exclusively by Google Gemini and FFmpeg."
     />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="framecut-api-url" content="" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -117,9 +118,9 @@
               Turn long-form video into ready-to-publish short clips.
             </h1>
             <p class="hero-subtitle">
-              Upload a video file or paste an authorized media URL. FrameCut transcribes speech with
-              Whisper, selects high-retention moments with AI, and renders cropped, captioned MP4
-              clips with FFmpeg.
+              Upload a video file or paste an authorized media URL. FrameCut uses Google Gemini for
+              speech transcription, highlight selection, titles, and descriptions, then renders
+              cropped, captioned MP4 clips with FFmpeg.
             </p>
           </div>
 
@@ -140,7 +141,7 @@
                     Checking processing backend...
                   </div>
                   <div class="system-banner-meta" id="system-banner-meta">
-                    Verifying FastAPI server, FFmpeg, Whisper, and AI provider configuration
+                    Verifying FastAPI server, FFmpeg, and Google Gemini configuration
                   </div>
                 </div>
               </div>
@@ -169,14 +170,14 @@
             <div class="backend-config-panel" id="backend-config-panel" hidden>
               <form id="backend-url-form" class="backend-url-form">
                 <label for="backend-url-input" class="field-label">
-                  FastAPI Server URL (leave blank for same-origin)
+                  Railway / FastAPI Server URL (leave blank for same-origin)
                 </label>
                 <div class="backend-url-row">
                   <input
                     type="url"
                     id="backend-url-input"
                     class="text-input mono-input"
-                    placeholder="http://localhost:8000"
+                    placeholder="https://your-service.up.railway.app"
                     autocomplete="off"
                   />
                   <button type="submit" class="btn btn-primary btn-sm">Apply</button>
@@ -467,8 +468,8 @@
                   </div>
                   <p class="empty-title">Waiting for media input</p>
                   <p class="empty-desc">
-                    Submit a video file or authorized URL to monitor real FFmpeg probing, Whisper
-                    transcription, AI highlight selection, and clip rendering.
+                    Submit a video file or authorized URL to monitor real FFmpeg probing, Gemini
+                    speech transcription, Gemini highlight selection, and clip rendering.
                   </p>
                 </div>
 
@@ -588,7 +589,7 @@
           <div class="transcript-drawer glass-surface" id="transcript-drawer" hidden>
             <div class="transcript-header">
               <div>
-                <h3 class="panel-subtitle">Whisper Speech Transcript</h3>
+                <h3 class="panel-subtitle">Speech Transcript</h3>
                 <p class="muted-small" id="transcript-meta">
                   Click any timestamped line to start a custom clip from that moment.
                 </p>
@@ -648,20 +649,19 @@
 
             <article class="workflow-item">
               <div class="workflow-num mono-text">02</div>
-              <h3 class="workflow-title">Whisper Speech Transcription</h3>
+              <h3 class="workflow-title">Gemini Speech Transcription</h3>
               <p class="workflow-desc">
-                FFmpeg extracts compact 16 kHz mono audio, then transcribes timestamped segments via
-                local <code class="inline-code">faster-whisper</code>,
-                <code class="inline-code">openai-whisper</code>, or the OpenAI Whisper API.
+                FFmpeg extracts compact 16 kHz mono audio, then Google Gemini generates accurate
+                timestamped transcript segments for captions and clip boundaries.
               </p>
             </article>
 
             <article class="workflow-item">
               <div class="workflow-num mono-text">03</div>
-              <h3 class="workflow-title">AI Highlight Selection</h3>
+              <h3 class="workflow-title">Gemini Highlight Selection</h3>
               <p class="workflow-desc">
-                The full timestamped transcript is analyzed by OpenAI or Gemini to locate complete,
-                self-contained moments within your chosen duration bounds and clip count.
+                Google Gemini analyzes the full timestamped transcript to select self-contained
+                highlights and generate punchy titles, hooks, and descriptions.
               </p>
             </article>
 
@@ -692,16 +692,16 @@
 
                 <div class="env-list">
                   <div class="env-item">
-                    <span class="mono-text env-key">OPENAI_API_KEY</span>
-                    <span class="env-desc">Enables OpenAI Whisper API &amp; GPT highlight selection</span>
-                  </div>
-                  <div class="env-item">
                     <span class="mono-text env-key">GEMINI_API_KEY</span>
-                    <span class="env-desc">Enables Gemini highlight selection (pair with local Whisper)</span>
+                    <span class="env-desc">Required in Railway environment variables for Google Gemini transcription &amp; highlights</span>
                   </div>
                   <div class="env-item">
-                    <span class="mono-text env-key">WHISPER_MODEL</span>
-                    <span class="env-desc">Optional local Whisper model size (default: base)</span>
+                    <span class="mono-text env-key">GEMINI_MODEL</span>
+                    <span class="env-desc">Optional Gemini model override for highlight selection (default: gemini-4-hydrogen)</span>
+                  </div>
+                  <div class="env-item">
+                    <span class="mono-text env-key">ALLOWED_ORIGINS</span>
+                    <span class="env-desc">Optional comma-separated Vercel frontend origins for CORS (default: *)</span>
                   </div>
                   <div class="env-item">
                     <span class="mono-text env-key">MAX_UPLOAD_MB</span>
@@ -717,28 +717,28 @@
                     <button
                       type="button"
                       class="btn btn-ghost btn-xs copy-cmd-btn"
-                      data-copy="pip install fastapi uvicorn python-multipart faster-whisper yt-dlp"
+                      data-copy="pip install -r requirements.txt"
                     >
                       <i data-lucide="copy" aria-hidden="true"></i>
                       <span>Copy</span>
                     </button>
                   </div>
-                  <pre class="command-pre"><code>pip install fastapi uvicorn python-multipart faster-whisper yt-dlp</code></pre>
+                  <pre class="command-pre"><code>pip install -r requirements.txt</code></pre>
                 </div>
 
                 <div class="command-block">
                   <div class="command-header">
-                    <span>2. Set an AI API key &amp; launch server.py</span>
+                    <span>2. Configure GEMINI_API_KEY &amp; launch server.py</span>
                     <button
                       type="button"
                       class="btn btn-ghost btn-xs copy-cmd-btn"
-                      data-copy="export OPENAI_API_KEY=your_key_here && python3 server.py"
+                      data-copy="export GEMINI_API_KEY=your_gemini_key && python3 server.py"
                     >
                       <i data-lucide="copy" aria-hidden="true"></i>
                       <span>Copy</span>
                     </button>
                   </div>
-                  <pre class="command-pre"><code>export OPENAI_API_KEY=your_key_here &amp;&amp; python3 server.py</code></pre>
+                  <pre class="command-pre"><code>export GEMINI_API_KEY=your_gemini_key &amp;&amp; python3 server.py</code></pre>
                 </div>
               </div>
             </div>
@@ -907,7 +907,7 @@
                   id="editor-srt-textarea"
                   class="text-area mono-input"
                   rows="5"
-                  placeholder="Leave unchanged to keep or auto-generate captions from the Whisper transcript..."
+                  placeholder="Leave unchanged to keep or auto-generate captions from the speech transcript..."
                 ></textarea>
               </div>
 
@@ -956,4 +956,3 @@
     <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
   </body>
 </html>
-
