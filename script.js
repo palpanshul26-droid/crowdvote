@@ -159,11 +159,19 @@
      ------------------------------------------------------------------------ */
   function loadSavedApiBase() {
     try {
-      var val = window.localStorage.getItem(STORAGE_API_KEY) || "";
-      return val.replace(/\/+$/, "");
+      var saved = window.localStorage.getItem(STORAGE_API_KEY) || "";
+      if (saved) return saved.replace(/\/+$/, "");
     } catch (_err) {
-      return "";
+      // Ignore storage errors in sandboxed frames
     }
+    if (typeof window.FRAMECUT_API_URL === "string" && window.FRAMECUT_API_URL.trim()) {
+      return window.FRAMECUT_API_URL.trim().replace(/\/+$/, "");
+    }
+    var metaTag = document.querySelector('meta[name="framecut-api-url"]');
+    if (metaTag && metaTag.getAttribute("content")) {
+      return metaTag.getAttribute("content").trim().replace(/\/+$/, "");
+    }
+    return "";
   }
 
   function saveApiBase(url) {
@@ -293,7 +301,7 @@
     dom.systemBanner.classList.remove("is-ready", "is-warning", "is-error");
     dom.systemStateIcon.innerHTML = '<i data-lucide="loader-2" class="spin"></i>';
     dom.systemBannerTitle.textContent = "Checking processing backend...";
-    dom.systemBannerMeta.textContent = "Verifying FastAPI server, FFmpeg, Whisper, and AI provider configuration";
+    dom.systemBannerMeta.textContent = "Verifying FastAPI server, FFmpeg, and Google Gemini configuration";
     dom.systemIssues.hidden = true;
     renderIcons();
 
@@ -306,10 +314,20 @@
         dom.maxUploadLabel.textContent = health.max_upload_mb + " MB";
       }
 
+      var aiLabel =
+        health.ai && health.ai.available
+          ? "Gemini (" + (health.ai.model || "ready") + ")"
+          : "Missing GEMINI_API_KEY";
+      var txLabel =
+        health.transcription && health.transcription.available
+          ? health.transcription.provider +
+            (health.transcription.model ? " (" + health.transcription.model + ")" : "")
+          : "Not configured";
+
       var summaryParts = [
         "FFmpeg: " + (health.ffmpeg && health.ffmpeg.available ? "Ready" : "Missing"),
-        "Whisper: " + (health.whisper && health.whisper.available ? health.whisper.provider : "Missing"),
-        "AI Highlights: " + (health.ai_highlight && health.ai_highlight.available ? health.ai_highlight.provider + " (" + health.ai_highlight.model + ")" : "Not configured"),
+        "Transcription: " + txLabel,
+        "AI: " + aiLabel,
         "URL yt-dlp: " + (health.yt_dlp && health.yt_dlp.available ? "Installed" : "Direct media URLs only"),
       ];
 
@@ -852,6 +870,8 @@
       var haystack = (
         (c.title || "") +
         " " +
+        (c.description || "") +
+        " " +
         (c.reason || "") +
         " " +
         (c.hook || "") +
@@ -928,8 +948,10 @@
           '<div class="clip-meta-line tabular">' +
           escapeHtml(metaParts.join(" · ")) +
           "</div>" +
-          (clip.reason || clip.transcript_excerpt
-            ? '<p class="clip-reason">' + escapeHtml(clip.reason || clip.transcript_excerpt) + "</p>"
+          (clip.description || clip.reason || clip.transcript_excerpt
+            ? '<p class="clip-reason">' +
+              escapeHtml(clip.description || clip.reason || clip.transcript_excerpt) +
+              "</p>"
             : "") +
           '<div class="clip-actions">' +
           '<button type="button" class="btn btn-secondary btn-sm" data-action="edit-clip" data-clip-id="' +
@@ -978,7 +1000,7 @@
       "Language: " +
       (transcript.language || "auto") +
       " · Engine: " +
-      (transcript.provider || "Whisper") +
+      (transcript.provider || "Google Gemini") +
       " · " +
       segments.length +
       " segments — click any line to create a custom clip starting there.";
@@ -1502,7 +1524,7 @@
     dom.resetSrtBtn.addEventListener("click", function () {
       dom.editorSrtTextarea.value = "";
       dom.editorSrtTextarea.dataset.touched = "false";
-      showToast("Captions will be auto-generated from the Whisper transcript on render.", "success");
+      showToast("Captions will be auto-generated from the speech transcript on render.", "success");
     });
 
     dom.clipEditorForm.addEventListener("submit", handleClipEditorSubmit);
@@ -1560,4 +1582,3 @@
     init();
   }
 })();
-
