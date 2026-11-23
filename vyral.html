@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vyral App Store — VyralClip</title>
+  <style>
+    /* ==========================================================================
+       1. DESIGN TOKENS & BASE RESET
+       Apple App Store-inspired Glassmorphism System
+       ========================================================================== */
+    :root {
+      --bg-base: #060913;
+      --bg-surface: rgba(20, 26, 44, 0.56);
+      --bg-surface-strong: rgba(16, 22, 38, 0.78);
+      --bg-surface-light: rgba(255, 255, 255, 0.06);
+      --border-glass: rgba(255, 255, 255, 0.14);
+      --border-glass-strong: rgba(255, 255, 255, 0.24);
+      --inner-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+      --text-primary: #f5f7ff;
+      --text-secondary: rgba(226, 232, 248, 0.72);
+      --text-tertiary: rgba(203, 213, 235, 0.48);
+
+      /* App Store Signature Blues */
+      --apple-blue: #0a84ff;
+      --apple-blue-hover: #2494ff;
+      --apple-blue-deep: #0058d6;
+      --apple-blue-glow: rgba(10, 132, 255, 0.45);
+      --apple-green: #30d158;
+      --apple-gold: #ffd60a;
+
+      /* Radii & Motion */
+      --radius-xl: 32px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --radius-pill: 9999px;
+      --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+      --shadow-deep: 0 28px 70px rgba(0, 0, 0, 0.55), 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.5;
+      position: relative;
+    }
+
+    body.modal-open {
+      overflow: hidden;
+    }
+
+    /* ==========================================================================
+       2. AMBIENT ANIMATED GRADIENT ORBS BACKGROUND
+       ========================================================================== */
+    .ambient-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      overflow: hidden;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 18% 15%, rgba(10, 132, 255, 0.16), transparent 45%),
+        radial-gradient(circle at 82% 85%, rgba(94, 92, 230, 0.16), transparent 50%),
+        linear-gradient(180deg, #060913 0%, #0a1020 55%, #060913 100%);
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.55;
+      will-change: transform;
+    }
+
+    .orb-1 {
+      width: 44vw;
+      height: 44vw;
+      max-width: 560px;
+      max-height: 560px;
+      background: radial-gradient(circle, rgba(10, 132, 255, 0.55), rgba(0, 88, 214, 0.05));
+      top: -12%;
+      left: -8%;
+      animation: floatOrb1 18s ease-in-out infinite alternate;
+    }
+
+    .orb-2 {
+      width: 40vw;
+      height: 40vw;
+      max-width: 500px;
+      max-height: 500px;
+      background: radial-gradient(circle, rgba(125, 95, 255, 0.45), rgba(88, 86, 214, 0.04));
+      bottom: -14%;
+      right: -8%;
+      animation: floatOrb2 22s ease-in-out infinite alternate;
+    }
+
+    .orb-3 {
+      width: 28vw;
+      height: 28vw;
+      max-width: 360px;
+      max-height: 360px;
+      background: radial-gradient(circle, rgba(48, 209, 255, 0.3), rgba(10, 132, 255, 0.02));
+      top: 42%;
+      left: 55%;
+      animation: floatOrb3 15s ease-in-out infinite alternate;
+    }
+
+    @keyframes floatOrb1 {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(8%, 10%) scale(1.12); }
+    }
+
+    @keyframes floatOrb2 {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(-10%, -8%) scale(1.15); }
+    }
+
+    @keyframes floatOrb3 {
+      0% { transform: translate(0, 0) scale(0.95); }
+      100% { transform: translate(-14%, 12%) scale(1.1); }
+    }
+
+    /* ==========================================================================
+       3. GLASSMORPHIC HEADER
+       ========================================================================== */
+    .store-header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      width: 100%;
+      padding: 14px 20px;
+      background: rgba(8, 12, 24, 0.65);
+      backdrop-filter: blur(28px) saturate(180%);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      border-bottom: 1px solid var(--border-glass);
+    }
+
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+      background: linear-gradient(145deg, #2ca0ff 0%, #0066ff 55%, #5e5ce6 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 18px rgba(10, 132, 255, 0.42), var(--inner-highlight);
+      flex-shrink: 0;
+    }
+
+    .brand-text h1 {
+      font-size: 1.18rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+    }
+
+    .brand-text span {
+      display: block;
+      font-size: 0.72rem;
+      color: var(--text-tertiary);
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-pill {
+      padding: 7px 14px;
+      border-radius: var(--radius-pill);
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: default;
+      transition: all 0.25s ease;
+    }
+
+    .nav-pill.active {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--border-glass);
+      box-shadow: var(--inner-highlight);
+    }
+
+    .verified-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #8cc8ff;
+      background: rgba(10, 132, 255, 0.14);
+      border: 1px solid rgba(10, 132, 255, 0.32);
+    }
+
+    /* ==========================================================================
+       4. MAIN LAYOUT & FEATURED "VYRALCLIP" COLUMN
+       ========================================================================== */
+    .main-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 20px 80px;
+    }
+
+    .section-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #6cb8ff;
+      margin-bottom: 10px;
+    }
+
+    .section-eyebrow::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--apple-blue);
+      box-shadow: 0 0 12px var(--apple-blue);
+    }
+
+    .hero-heading {
+      font-size: clamp(2rem, 4.5vw, 3.1rem);
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      line-height: 1.08;
+      margin-bottom: 10px;
+      background: linear-gradient(180deg, #ffffff 0%, rgba(226, 236, 255, 0.76) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-sub {
+      font-size: 1.02rem;
+      color: var(--text-secondary);
+      max-width: 560px;
+      margin-bottom: 34px;
+    }
+
+    /* Featured App Column Card */
+    .featured-column {
+      position: relative;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(145deg, rgba(28, 36, 60, 0.62) 0%, rgba(14, 19, 34, 0.74) 100%);
+      backdrop-filter: blur(32px) saturate(180%);
+      -webkit-backdrop-filter: blur(32px) saturate(180%);
+      border: 1px solid var(--border-glass);
+      box-shadow: var(--shadow-deep), var(--inner-highlight);
+      padding: 28px;
+      overflow: hidden;
+      transition: transform 0.35s var(--ease-spring), border-color 0.35s ease, box-shadow 0.35s ease;
+    }
+
+    .featured-column:hover {
+      transform: translateY(-4px);
+      border-color: var(--border-glass-strong);
+      box-shadow: 0 34px 80px rgba(0, 0, 0, 0.62), 0 0 40px rgba(10, 132, 255, 0.14), var(--inner-highlight);
+    }
+
+    .featured-column::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(10, 132, 255, 0.18), transparent 52%);
+      pointer-events: none;
+    }
+
+    .featured-top-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .editor-choice-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: 0.02em;
+    }
+
+    .app-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .app-identity {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      min-width: 0;
+    }
+
+    /* App Logo Container (connected to logo.jpg with crisp vector fallback) */
+    .app-icon-frame {
+      width: 96px;
+      height: 96px;
+      border-radius: 24px;
+      overflow: hidden;
+      flex-shrink: 0;
+      position: relative;
+      background: linear-gradient(145deg, #1b2848, #0c1326);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45), 0 0 24px rgba(10, 132, 255, 0.22);
+    }
+
+    .app-icon-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .icon-fallback {
+      display: none;
+      width: 100%;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0a84ff 0%, #5e5ce6 52%, #bf5af2 100%);
+    }
+
+    .app-meta {
+      min-width: 0;
+    }
+
+    .app-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .app-name {
+      font-size: clamp(1.5rem, 2.5vw, 1.95rem);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      color: var(--text-primary);
+    }
+
+    .age-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-secondary);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    .app-tagline {
+      font-size: 0.98rem;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    .quick-metrics {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 12px;
+      font-size: 0.86rem;
+      color: var(--text-secondary);
+    }
+
+    .metric-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 11px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-weight: 500;
+    }
+
+    .metric-chip .star {
+      color: var(--apple-gold);
+    }
+
+    /* ==========================================================================
+       5. APP STORE GLASSMORPHIC BLUE BUTTONS
+       ========================================================================== */
+    .btn-appstore {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 15px 30px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(140, 206, 255, 0.52);
+      background: linear-gradient(180deg, rgba(44, 156, 255, 0.92) 0%, rgba(10, 132, 255, 0.92) 52%, rgba(0, 100, 224, 0.96) 100%);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      box-shadow:
+        0 12px 30px rgba(10, 132, 255, 0.42),
+        inset 0 1px 0 rgba(255, 255, 255, 0.48),
+        inset 0 -1px 0 rgba(0, 48, 120, 0.35);
+      transition: transform 0.25s var(--ease-spring), box-shadow 0.25s ease, filter 0.25s ease;
+      white-space: nowrap;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-appstore:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow:
+        0 16px 38px rgba(10, 132, 255, 0.58),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      filter: brightness(1.06);
+    }
+
+    .btn-appstore:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .btn-appstore:focus-visible {
+      outline: 2px solid #8cc8ff;
+      outline-offset: 3px;
+    }
+
+    .btn-install-cta {
+      width: 100%;
+      padding: 18px 32px;
+      font-size: 1.08rem;
+      box-shadow:
+        0 14px 40px rgba(10, 132, 255, 0.55),
+        0 0 28px rgba(10, 132, 255, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.52);
+    }
+
+    /* Feature Highlights Strip inside Main Column */
+    .column-highlights {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 26px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.09);
+      position: relative;
+      z-index: 1;
+    }
+
+    .highlight-tile {
+      padding: 16px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .highlight-tile h3 {
+      font-size: 0.92rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text-primary);
+    }
+
+    .highlight-tile p {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+
+    /* ==========================================================================
+       6. EXPANDED APP DETAILS BIG COLUMN (GLASSMORPHIC MODAL OVERLAY)
+       ========================================================================== */
+    .detail-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(4, 7, 16, 0.72);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.35s ease, visibility 0.35s ease;
+    }
+
+    .detail-backdrop.is-open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .detail-column {
+      position: relative;
+      width: 100%;
+      max-width: 920px;
+      max-height: 92vh;
+      overflow-y: auto;
+      border-radius: 34px;
+      background: linear-gradient(155deg, rgba(24, 32, 54, 0.86) 0%, rgba(12, 16, 30, 0.92) 100%);
+      backdrop-filter: blur(40px) saturate(200%);
+      -webkit-backdrop-filter: blur(40px) saturate(200%);
+      border: 1px solid var(--border-glass-strong);
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.72), var(--inner-highlight);
+      padding: 34px;
+      transform: translateY(28px) scale(0.95);
+      transition: transform 0.42s var(--ease-spring);
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    }
+
+    .detail-backdrop.is-open .detail-column {
+      transform: translateY(0) scale(1);
+    }
+
+    .detail-close-btn {
+      position: sticky;
+      top: 0;
+      float: right;
+      z-index: 10;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      color: var(--text-primary);
+      font-size: 1.35rem;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .detail-close-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.06);
+    }
+
+    /* Detail Header */
+    .detail-header {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding-right: 48px;
+      margin-bottom: 26px;
+    }
+
+    .detail-icon-frame {
+      width: 112px;
+      height: 112px;
+      border-radius: 28px;
+    }
+
+    .detail-title {
+      font-size: clamp(1.8rem, 3.2vw, 2.35rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+
+    .detail-subtitle {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      margin-top: 6px;
+    }
+
+    .detail-dev {
+      font-size: 0.86rem;
+      color: #6cb8ff;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    /* App Store Info Strip */
+    .info-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      margin-bottom: 28px;
+    }
+
+    .info-cell {
+      background: rgba(14, 20, 36, 0.72);
+      padding: 16px 12px;
+      text-align: center;
+    }
+
+    .info-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-bottom: 5px;
+    }
+
+    .info-value {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .info-value .star {
+      color: var(--apple-gold);
+      font-size: 1.05rem;
+    }
+
+    .info-sub {
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    /* ==========================================================================
+       7. SCREENSHOTS GALLERY (screenshot1.jpg to screenshot4.jpg)
+       ========================================================================== */
+    .gallery-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .gallery-header h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+    }
+
+    .gallery-hint {
+      font-size: 0.8rem;
+      color: var(--text-tertiary);
+    }
+
+    .screenshots-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 30px;
+    }
+
+    .screenshot-card {
+      position: relative;
+      aspect-ratio: 9 / 16;
+      border-radius: 20px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.36);
+      cursor: pointer;
+      transition: transform 0.3s var(--ease-spring), border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .screenshot-card:hover {
+      transform: translateY(-4px) scale(1.02);
+      border-color: rgba(10, 132, 255, 0.65);
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.5), 0 0 20px rgba(10, 132, 255, 0.25);
+    }
+
+    .screenshot-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Crisp UI Mockup Fallback when local screenshot1-4.jpg aren't present */
+    .screenshot-fallback {
+      display: none;
+      width: 100%;
+      height: 100%;
+      padding: 16px 12px;
+      flex-direction: column;
+      justify-content: space-between;
+      color: #fff;
+      position: relative;
+    }
+
+    .sf-1 { background: linear-gradient(160deg, #0d2149 0%, #0a84ff 60%, #1d1542 100%); }
+    .sf-2 { background: linear-gradient(160deg, #1d1244 0%, #5e5ce6 55%, #0e1e3f 100%); }
+    .sf-3 { background: linear-gradient(160deg, #0b2b3d 0%, #0099cc 55%, #0e162e 100%); }
+    .sf-4 { background: linear-gradient(160deg, #2a103f 0%, #bf5af2 52%, #0d1632 100%); }
+
+    .sf-pill {
+      align-self: flex-start;
+      font-size: 0.64rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.34);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .sf-ui-mock {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .sf-bar {
+      height: 8px;
+      border-radius: 99px;
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .sf-bar.accent {
+      background: rgba(255, 255, 255, 0.85);
+      width: 72%;
+    }
+
+    .sf-screen-box {
+      height: 54%;
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.28);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sf-caption {
+      font-size: 0.78rem;
+      font-weight: 700;
+      line-height: 1.25;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+    }
+
+    .sf-file-tag {
+      font-size: 0.66rem;
+      opacity: 0.72;
+      margin-top: 2px;
+    }
+
+    /* ==========================================================================
+       8. 5-SECOND APK LOADING & DOWNLOAD ACTION PANEL
+       ========================================================================== */
+    .install-panel {
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      background: rgba(255, 255, 255, 0.045);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      transition: box-shadow 0.4s ease, border-color 0.4s ease;
+    }
+
+    .install-panel.is-loading {
+      border-color: rgba(10, 132, 255, 0.55);
+      animation: panelPulseGlow 1.6s ease-in-out infinite;
+    }
+
+    @keyframes panelPulseGlow {
+      0%, 100% {
+        box-shadow: 0 0 24px rgba(10, 132, 255, 0.2), inset 0 0 18px rgba(10, 132, 255, 0.08);
+      }
+      50% {
+        box-shadow: 0 0 42px rgba(10, 132, 255, 0.42), inset 0 0 28px rgba(10, 132, 255, 0.18);
+      }
+    }
+
+    .install-subnote {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-tertiary);
+      margin-top: 12px;
+    }
+
+    /* Loading State UI */
+    .loading-state {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .loading-state.active {
+      display: flex;
+    }
+
+    .loading-top {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .ring-wrapper {
+      position: relative;
+      width: 64px;
+      height: 64px;
+      flex-shrink: 0;
+    }
+
+    .progress-ring {
+      width: 64px;
+      height: 64px;
+      transform: rotate(-90deg);
+    }
+
+    .ring-track {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.12);
+      stroke-width: 5;
+    }
+
+    .ring-fill {
+      fill: none;
+      stroke: url(#blueRingGrad);
+      stroke-width: 5;
+      stroke-linecap: round;
+      stroke-dasharray: 169.65; /* 2 * PI * 27 */
+      stroke-dashoffset: 169.65;
+      filter: drop-shadow(0 0 6px rgba(10, 132, 255, 0.7));
+    }
+
+    .ring-percent {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.86rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-primary);
+    }
+
+    .loading-text-group {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .loading-stage {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 3px;
+    }
+
+    .loading-meta {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .progress-bar-track {
+      width: 100%;
+      height: 10px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .progress-bar-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: var(--radius-pill);
+      background: linear-gradient(90deg, #0066ff 0%, #0a84ff 55%, #5ac8fa 100%);
+      box-shadow: 0 0 16px rgba(10, 132, 255, 0.75);
+    }
+
+    /* Success State UI */
+    .success-state {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+      padding: 6px 0;
+    }
+
+    .success-state.active {
+      display: flex;
+    }
+
+    .check-circle {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(48, 209, 88, 0.16);
+      border: 1px solid rgba(48, 209, 88, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 28px rgba(48, 209, 88, 0.35);
+      animation: popIn 0.45s var(--ease-spring);
+    }
+
+    .check-path {
+      stroke: var(--apple-green);
+      stroke-width: 3.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      stroke-dasharray: 48;
+      stroke-dashoffset: 48;
+      animation: drawCheck 0.5s 0.15s ease forwards;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes drawCheck {
+      to { stroke-dashoffset: 0; }
+    }
+
+    .success-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .success-desc {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      max-width: 420px;
+    }
+
+    .btn-redownload {
+      margin-top: 4px;
+      padding: 11px 22px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .btn-redownload:hover {
+      background: rgba(255, 255, 255, 0.16);
+      transform: translateY(-1px);
+    }
+
+    /* ==========================================================================
+       9. SCREENSHOT LIGHTBOX PREVIEW
+       ========================================================================== */
+    .lightbox-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(2, 4, 10, 0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
+    }
+
+    .lightbox-overlay.is-open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .lightbox-frame {
+      position: relative;
+      max-width: 380px;
+      width: 100%;
+      aspect-ratio: 9 / 16;
+      border-radius: 28px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.26);
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.8);
+    }
+
+    .lightbox-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      background: rgba(0, 0, 0, 0.55);
+      color: #fff;
+      font-size: 1.4rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Footer */
+    .store-footer {
+      text-align: center;
+      padding: 24px 20px 44px;
+      font-size: 0.82rem;
+      color: var(--text-tertiary);
+    }
+
+    /* ==========================================================================
+       10. RESPONSIVE BREAKPOINTS (MOBILE & TABLET)
+       ========================================================================== */
+    @media (max-width: 820px) {
+      .app-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .btn-appstore.main-trigger {
+        width: 100%;
+      }
+
+      .column-highlights {
+        grid-template-columns: 1fr;
+      }
+
+      .screenshots-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .info-strip {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .detail-column {
+        padding: 24px 20px;
+        border-radius: 26px;
+      }
+
+      .detail-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .header-nav {
+        display: none;
+      }
+
+      .app-identity {
+        gap: 16px;
+      }
+
+      .app-icon-frame {
+        width: 78px;
+        height: 78px;
+        border-radius: 20px;
+      }
+
+      .detail-icon-frame {
+        width: 86px;
+        height: 86px;
+        border-radius: 22px;
+      }
+
+      .featured-column {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Animated Gradient Orbs -->
+  <div class="ambient-canvas" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- Glassmorphic App Store Header -->
+  <header class="store-header">
+    <div class="header-inner">
+      <div class="brand-group">
+        <div class="brand-mark" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M5 17L12 5L19 17" stroke="white" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M8.5 14.5H15.5" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>Vyral App Store</h1>
+          <span>Official APK Distribution</span>
+        </div>
+      </div>
+
+      <nav class="header-nav" aria-label="Store Navigation">
+        <span class="nav-pill active">Today</span>
+        <span class="nav-pill">Apps</span>
+        <span class="nav-pill">Creator Tools</span>
+      </nav>
+
+      <div class="verified-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 2L14.8 4.4L18.5 4.2L19.6 7.8L22.5 10L21.3 13.5L22.5 17L19.6 19.2L18.5 22.8L14.8 22.6L12 25L9.2 22.6L5.5 22.8L4.4 19.2L1.5 17L2.7 13.5L1.5 10L4.4 7.8L5.5 4.2L9.2 4.4L12 2Z" fill="rgba(10,132,255,0.28)" stroke="#8cc8ff" stroke-width="1.6"/>
+          <path d="M8.5 13.5L11 16L16 10.5" stroke="#8cc8ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Verified Store
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Storefront Content -->
+  <main class="main-container">
+    <div class="section-eyebrow">Featured Release</div>
+    <h2 class="hero-heading">Next-Gen Creator Apps,<br/>Built for Speed.</h2>
+    <p class="hero-sub">
+      Discover verified, high-performance Android builds curated in a sleek App Store experience.
+    </p>
+
+    <!-- Prominent VyralClip Column -->
+    <section class="featured-column" aria-label="Featured App: VyralClip">
+      <div class="featured-top-banner">
+        <span class="editor-choice-pill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#ffd60a" aria-hidden="true">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+          Editor's Choice • #1 in Video
+        </span>
+        <span class="editor-choice-pill">Android APK • v4.2.0</span>
+      </div>
+
+      <div class="app-row">
+        <div class="app-identity">
+          <!-- App Logo connected to logo.jpg with crisp inline fallback -->
+          <div class="app-icon-frame">
+            <img
+              src="logo.jpg"
+              alt="VyralClip Logo"
+              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+            />
+            <div class="icon-fallback" aria-hidden="true">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                <rect x="6" y="10" width="36" height="28" rx="8" stroke="white" stroke-width="3"/>
+                <path d="M20 18L31 24L20 30V18Z" fill="white"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="app-meta">
+            <div class="app-title-row">
+              <h3 class="app-name">VyralClip</h3>
+              <span class="age-tag">4+</span>
+            </div>
+            <p class="app-tagline">Pro Video Editor &amp; Viral Clip Maker</p>
+            <div class="quick-metrics">
+              <span class="metric-chip"><span class="star">★</span> 4.9 (128K)</span>
+              <span class="metric-chip">30 MB</span>
+              <span class="metric-chip">Free APK</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- App Store Blue Glassmorphic Trigger Button -->
+        <button
+          id="openDetailBtn"
+          class="btn-appstore main-trigger"
+          type="button"
+          aria-haspopup="dialog"
+          aria-controls="appDetailModal"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke="white" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M5 19H19" stroke="white" stroke-width="2.4" stroke-linecap="round"/>
+          </svg>
+          Install APK
+        </button>
+      </div>
+
+      <div class="column-highlights">
+        <div class="highlight-tile">
+          <h3>AI Auto-Captions &amp; Cuts</h3>
+          <p>Instantly detect viral hooks, sync dynamic subtitles, and trim silence in one tap.</p>
+        </div>
+        <div class="highlight-tile">
+          <h3>4K 60fps HDR Export</h3>
+          <p>Hardware-accelerated rendering with zero watermarks and cinema-grade color LUTs.</p>
+        </div>
+        <div class="highlight-tile">
+          <h3>Ultra-Light 30 MB Build</h3>
+          <p>Engineered for fast downloads and smooth editing on every modern Android device.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="store-footer">
+    &copy; 2026 Vyral App Store. All packages are SHA-256 verified before download.
+  </footer>
+
+  <!-- ========================================================================
+       EXPANDED BIG COLUMN MODAL: VYRALCLIP DETAILS, SCREENSHOTS & 5s LOADER
+       ======================================================================== -->
+  <div
+    id="appDetailModal"
+    class="detail-backdrop"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="detailAppName"
+  >
+    <div class="detail-column" id="detailColumnCard">
+      <button
+        id="closeDetailBtn"
+        class="detail-close-btn"
+        type="button"
+        aria-label="Close app details"
+      >
+        &times;
+      </button>
+
+      <!-- App Header inside Big Column -->
+      <div class="detail-header">
+        <div class="app-icon-frame detail-icon-frame">
+          <img
+            src="logo.jpg"
+            alt="VyralClip Logo"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div class="icon-fallback" aria-hidden="true">
+            <svg width="56" height="56" viewBox="0 0 48 48" fill="none">
+              <rect x="6" y="10" width="36" height="28" rx="8" stroke="white" stroke-width="3"/>
+              <path d="M20 18L31 24L20 30V18Z" fill="white"/>
+            </svg>
+          </div>
+        </div>
+
+        <div>
+          <h2 id="detailAppName" class="detail-title">VyralClip</h2>
+          <p class="detail-subtitle">Pro Video Editor &amp; Viral Clip Maker</p>
+          <p class="detail-dev">Vyral Studios Inc. &bull; Verified Developer</p>
+        </div>
+      </div>
+
+      <!-- App Store Info Strip -->
+      <div class="info-strip" aria-label="App Specifications">
+        <div class="info-cell">
+          <div class="info-label">128K Ratings</div>
+          <div class="info-value">4.9 <span class="star">★</span></div>
+          <div class="info-sub">Top Rated</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-label">Size</div>
+          <div class="info-value">30 MB</div>
+          <div class="info-sub">APK Package</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-label">Category</div>
+          <div class="info-value" style="font-size: 1.05rem;">Photo &amp; Video</div>
+          <div class="info-sub">#1 Trending</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-label">Version</div>
+          <div class="info-value">4.2.0</div>
+          <div class="info-sub">Android 8.0+</div>
+        </div>
+      </div>
+
+      <!-- Four App Screenshots Gallery (screenshot1.jpg to screenshot4.jpg) -->
+      <div class="gallery-header">
+        <h3>Preview Screenshots</h3>
+        <span class="gallery-hint">Tap any screenshot to zoom</span>
+      </div>
+
+      <div class="screenshots-grid" id="screenshotsGrid">
+        <!-- Screenshot 1 -->
+        <div class="screenshot-card" data-screenshot="screenshot1.jpg" tabindex="0" role="button" aria-label="Preview Screenshot 1">
+          <img
+            src="screenshot1.jpg"
+            alt="VyralClip Screenshot 1"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div class="screenshot-fallback sf-1" aria-hidden="true">
+            <span class="sf-pill">Timeline Studio</span>
+            <div class="sf-ui-mock">
+              <div class="sf-screen-box">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+              </div>
+              <div class="sf-bar accent"></div>
+              <div class="sf-bar" style="width: 90%;"></div>
+              <div class="sf-bar" style="width: 55%;"></div>
+            </div>
+            <div>
+              <div class="sf-caption">Multi-Track Magnetic Timeline</div>
+              <div class="sf-file-tag">screenshot1.jpg</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Screenshot 2 -->
+        <div class="screenshot-card" data-screenshot="screenshot2.jpg" tabindex="0" role="button" aria-label="Preview Screenshot 2">
+          <img
+            src="screenshot2.jpg"
+            alt="VyralClip Screenshot 2"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div class="screenshot-fallback sf-2" aria-hidden="true">
+            <span class="sf-pill">AI Captions</span>
+            <div class="sf-ui-mock">
+              <div class="sf-screen-box">
+                <span style="font-weight: 800; font-size: 0.95rem; letter-spacing: 0.04em;">"GO VIRAL"</span>
+              </div>
+              <div class="sf-bar accent" style="width: 85%;"></div>
+              <div class="sf-bar" style="width: 64%;"></div>
+            </div>
+            <div>
+              <div class="sf-caption">Dynamic Auto-Sync Subtitles</div>
+              <div class="sf-file-tag">screenshot2.jpg</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Screenshot 3 -->
+        <div class="screenshot-card" data-screenshot="screenshot3.jpg" tabindex="0" role="button" aria-label="Preview Screenshot 3">
+          <img
+            src="screenshot3.jpg"
+            alt="VyralClip Screenshot 3"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div class="screenshot-fallback sf-3" aria-hidden="true">
+            <span class="sf-pill">Color &amp; FX</span>
+            <div class="sf-ui-mock">
+              <div class="sf-screen-box">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                  <circle cx="12" cy="12" r="7"/>
+                  <path d="M12 5v14M5 12h14"/>
+                </svg>
+              </div>
+              <div class="sf-bar accent" style="width: 60%;"></div>
+              <div class="sf-bar" style="width: 95%;"></div>
+            </div>
+            <div>
+              <div class="sf-caption">Cinema LUTs &amp; Motion Blur</div>
+              <div class="sf-file-tag">screenshot3.jpg</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Screenshot 4 -->
+        <div class="screenshot-card" data-screenshot="screenshot4.jpg" tabindex="0" role="button" aria-label="Preview Screenshot 4">
+          <img
+            src="screenshot4.jpg"
+            alt="VyralClip Screenshot 4"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div class="screenshot-fallback sf-4" aria-hidden="true">
+            <span class="sf-pill">4K Export</span>
+            <div class="sf-ui-mock">
+              <div class="sf-screen-box">
+                <span style="font-weight: 800; font-size: 1.1rem;">4K 60fps</span>
+              </div>
+              <div class="sf-bar accent" style="width: 100%;"></div>
+              <div class="sf-bar" style="width: 78%;"></div>
+            </div>
+            <div>
+              <div class="sf-caption">Instant Zero-Watermark Render</div>
+              <div class="sf-file-tag">screenshot4.jpg</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Highlighted Install APK Action & 5-Second Loading Area -->
+      <div class="install-panel" id="installPanel">
+        <!-- Idle Button State -->
+        <div id="idleInstallView">
+          <button id="startDownloadBtn" class="btn-appstore btn-install-cta" type="button">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M4 19H20" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+            Install the APK
+          </button>
+          <p class="install-subnote">Direct download: <strong>vyralclip.apk</strong> (30 MB) &bull; Safe &amp; Signed Build</p>
+        </div>
+
+        <!-- 5-Second Animated Loading State -->
+        <div id="loadingInstallView" class="loading-state" aria-live="polite">
+          <div class="loading-top">
+            <div class="ring-wrapper">
+              <svg class="progress-ring" viewBox="0 0 64 64">
+                <defs>
+                  <linearGradient id="blueRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#5ac8fa"/>
+                    <stop offset="50%" stop-color="#0a84ff"/>
+                    <stop offset="100%" stop-color="#0058d6"/>
+                  </linearGradient>
+                </defs>
+                <circle class="ring-track" cx="32" cy="32" r="27"></circle>
+                <circle id="ringFill" class="ring-fill" cx="32" cy="32" r="27"></circle>
+              </svg>
+              <div id="ringPercent" class="ring-percent">0%</div>
+            </div>
+
+            <div class="loading-text-group">
+              <div id="loadingStageText" class="loading-stage">Connecting to Vyral servers...</div>
+              <div id="loadingMetaText" class="loading-meta">vyralclip.apk &bull; 30 MB &bull; Preparing secure transfer</div>
+            </div>
+          </div>
+
+          <div class="progress-bar-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressBarTrack">
+            <div id="progressBarFill" class="progress-bar-fill"></div>
+          </div>
+        </div>
+
+        <!-- Download Started Success State -->
+        <div id="successInstallView" class="success-state" aria-live="polite">
+          <div class="check-circle" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 28 28">
+              <path class="check-path" d="M6 14.5L11.5 20L22 9" />
+            </svg>
+          </div>
+          <div class="success-title">Download Started</div>
+          <p class="success-desc">
+            <strong>vyralclip.apk</strong> (30 MB) is downloading now. Open the APK file from your notifications once complete to install VyralClip.
+          </p>
+          <button id="redownloadBtn" class="btn-redownload" type="button">
+            Download Again
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screenshot Zoom Lightbox -->
+  <div id="lightboxOverlay" class="lightbox-overlay" role="dialog" aria-modal="true" aria-label="Zoomed Screenshot">
+    <button id="lightboxCloseBtn" class="lightbox-close" type="button" aria-label="Close screenshot preview">&times;</button>
+    <div id="lightboxFrame" class="lightbox-frame"></div>
+  </div>
+
+  <script>
+    /**
+     * Vyral App Store Interactive Controller
+     * Handles modal transitions, 5-second APK loading animation,
+     * programmatic vyralclip.apk download, and screenshot lightbox.
+     */
+    (function () {
+      "use strict";
+
+      // DOM References
+      const openDetailBtn = document.getElementById("openDetailBtn");
+      const closeDetailBtn = document.getElementById("closeDetailBtn");
+      const appDetailModal = document.getElementById("appDetailModal");
+      const installPanel = document.getElementById("installPanel");
+
+      const idleInstallView = document.getElementById("idleInstallView");
+      const loadingInstallView = document.getElementById("loadingInstallView");
+      const successInstallView = document.getElementById("successInstallView");
+
+      const startDownloadBtn = document.getElementById("startDownloadBtn");
+      const redownloadBtn = document.getElementById("redownloadBtn");
+
+      const ringFill = document.getElementById("ringFill");
+      const ringPercent = document.getElementById("ringPercent");
+      const loadingStageText = document.getElementById("loadingStageText");
+      const progressBarFill = document.getElementById("progressBarFill");
+      const progressBarTrack = document.getElementById("progressBarTrack");
+
+      const screenshotsGrid = document.getElementById("screenshotsGrid");
+      const lightboxOverlay = document.getElementById("lightboxOverlay");
+      const lightboxFrame = document.getElementById("lightboxFrame");
+      const lightboxCloseBtn = document.getElementById("lightboxCloseBtn");
+
+      // Constants for 5-second progress animation
+      const LOAD_DURATION_MS = 5000;
+      const RING_CIRCUMFERENCE = 2 * Math.PI * 27; // ~169.65
+      let animationFrameId = null;
+      let isDownloading = false;
+
+      /**
+       * Resets the install panel to its default idle state.
+       */
+      function resetInstallState() {
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+          animationFrameId = null;
+        }
+        isDownloading = false;
+        installPanel.classList.remove("is-loading");
+        idleInstallView.style.display = "block";
+        loadingInstallView.classList.remove("active");
+        successInstallView.classList.remove("active");
+
+        ringFill.style.strokeDashoffset = RING_CIRCUMFERENCE;
+        ringPercent.textContent = "0%";
+        progressBarFill.style.width = "0%";
+        progressBarTrack.setAttribute("aria-valuenow", "0");
+      }
+
+      /**
+       * Opens the expanded VyralClip big column overlay.
+       */
+      function openDetailModal() {
+        appDetailModal.classList.add("is-open");
+        document.body.classList.add("modal-open");
+      }
+
+      /**
+       * Closes the expanded VyralClip big column overlay.
+       */
+      function closeDetailModal() {
+        appDetailModal.classList.remove("is-open");
+        document.body.classList.remove("modal-open");
+        // Reset download UI if closed after completion or mid-load
+        setTimeout(() => {
+          if (!appDetailModal.classList.contains("is-open")) {
+            resetInstallState();
+          }
+        }, 320);
+      }
+
+      /**
+       * Programmatically triggers download of vyralclip.apk.
+       */
+      function triggerApkDownload() {
+        try {
+          const link = document.createElement("a");
+          link.href = "vyralclip.apk";
+          link.download = "vyralclip.apk";
+          link.style.display = "none";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } catch (err) {
+          console.error("Download trigger failed:", err);
+        }
+      }
+
+      /**
+       * Returns the appropriate realistic status stage message for a given progress (0..100).
+       */
+      function getStageMessage(percent) {
+        if (percent < 25) return "Connecting to Vyral servers...";
+        if (percent < 55) return "Verifying package signature...";
+        if (percent < 85) return "Preparing vyralclip.apk (30 MB)...";
+        return "Finalizing download...";
+      }
+
+      /**
+       * Starts the smooth 5-second (5000ms) APK loading animation.
+       * Uses requestAnimationFrame for 60fps ring + bar synchronization.
+       */
+      function startFiveSecondLoad() {
+        if (isDownloading) return;
+        isDownloading = true;
+
+        idleInstallView.style.display = "none";
+        successInstallView.classList.remove("active");
+        loadingInstallView.classList.add("active");
+        installPanel.classList.add("is-loading");
+
+        const startTime = performance.now();
+
+        function step(now) {
+          const elapsed = now - startTime;
+          const linearProgress = Math.min(elapsed / LOAD_DURATION_MS, 1);
+
+          // Subtle ease-in-out curve while guaranteeing exact 5000ms completion
+          const eased = linearProgress < 0.5
+            ? 2 * linearProgress * linearProgress
+            : 1 - Math.pow(-2 * linearProgress + 2, 2) / 2;
+
+          // Blend slightly with linear so the percentage ticks steadily and naturally
+          const progress = linearProgress * 0.65 + eased * 0.35;
+          const percent = Math.round(progress * 100);
+
+          // Update circular ring and linear bar
+          const dashOffset = RING_CIRCUMFERENCE * (1 - progress);
+          ringFill.style.strokeDashoffset = dashOffset.toFixed(2);
+          ringPercent.textContent = percent + "%";
+          progressBarFill.style.width = (progress * 100).toFixed(2) + "%";
+          progressBarTrack.setAttribute("aria-valuenow", String(percent));
+          loadingStageText.textContent = getStageMessage(percent);
+
+          if (elapsed < LOAD_DURATION_MS) {
+            animationFrameId = requestAnimationFrame(step);
+          } else {
+            // Reached 100% at exactly 5 seconds
+            ringFill.style.strokeDashoffset = "0";
+            ringPercent.textContent = "100%";
+            progressBarFill.style.width = "100%";
+            progressBarTrack.setAttribute("aria-valuenow", "100");
+
+            isDownloading = false;
+            animationFrameId = null;
+            installPanel.classList.remove("is-loading");
+            loadingInstallView.classList.remove("active");
+            successInstallView.classList.add("active");
+
+            // Trigger actual vyralclip.apk download
+            triggerApkDownload();
+          }
+        }
+
+        animationFrameId = requestAnimationFrame(step);
+      }
+
+      /**
+       * Opens the screenshot zoom lightbox by cloning the clicked card's active visual.
+       */
+      function openScreenshotLightbox(card) {
+        lightboxFrame.innerHTML = "";
+        const img = card.querySelector("img");
+        const fallback = card.querySelector(".screenshot-fallback");
+
+        if (img && img.style.display !== "none" && img.complete && img.naturalWidth > 0) {
+          const cloneImg = img.cloneNode(true);
+          lightboxFrame.appendChild(cloneImg);
+        } else if (fallback) {
+          const cloneFallback = fallback.cloneNode(true);
+          cloneFallback.style.display = "flex";
+          lightboxFrame.appendChild(cloneFallback);
+        }
+
+        lightboxOverlay.classList.add("is-open");
+      }
+
+      function closeScreenshotLightbox() {
+        lightboxOverlay.classList.remove("is-open");
+      }
+
+      // Event Listeners
+      openDetailBtn.addEventListener("click", openDetailModal);
+      closeDetailBtn.addEventListener("click", closeDetailModal);
+
+      // Click outside modal card closes it
+      appDetailModal.addEventListener("click", function (e) {
+        if (e.target === appDetailModal) {
+          closeDetailModal();
+        }
+      });
+
+      // Install & Re-download buttons
+      startDownloadBtn.addEventListener("click", startFiveSecondLoad);
+      redownloadBtn.addEventListener("click", startFiveSecondLoad);
+
+      // Screenshot click & keyboard activation for zoom lightbox
+      screenshotsGrid.addEventListener("click", function (e) {
+        const card = e.target.closest(".screenshot-card");
+        if (card) openScreenshotLightbox(card);
+      });
+
+      screenshotsGrid.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          const card = e.target.closest(".screenshot-card");
+          if (card) {
+            e.preventDefault();
+            openScreenshotLightbox(card);
+          }
+        }
+      });
+
+      lightboxCloseBtn.addEventListener("click", closeScreenshotLightbox);
+      lightboxOverlay.addEventListener("click", function (e) {
+        if (e.target === lightboxOverlay) {
+          closeScreenshotLightbox();
+        }
+      });
+
+      // Escape key closes lightbox first, then detail modal
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+          if (lightboxOverlay.classList.contains("is-open")) {
+            closeScreenshotLightbox();
+          } else if (appDetailModal.classList.contains("is-open")) {
+            closeDetailModal();
+          }
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
